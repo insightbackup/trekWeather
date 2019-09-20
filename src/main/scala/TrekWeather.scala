@@ -36,7 +36,19 @@ object TrekWeather {
 		var years = spark.read.format("csv").option("header","false")
 				.load("s3a://kimport-de-data/noaa/by_year/*.csv")
 
-		println(years.count())
+		years = years.toDF(Seq("ID","Date","Element","Value","M","Q","S","OBS-TIME"): _*)
+		years = years.filter($"ID".startsWith("US"))
+		years = years.withColumn("Value",years.col("Value").cast("int"))
+
+		val desiredElements = Seq("PRCP","SNOW","SNWD","TAVG","TMAX","TMIN","TOBS",
+								  "WT01","WT02","WT03","WT04","WT05","WT06","WT07",
+								  "WT08","WT09","WT10","WT11","WT12","WT13","WT14",
+								  "WT15","WT16","WT17","WT18","WT19","WT20","WT21","WT22")
+		years = years.groupBy("ID","Date").pivot("Element",desiredElements).sum("Value")
+
+		years.show()
+
+
 
 	}
 }
