@@ -1,1 +1,0 @@
-["sbt.Task[scala.collection.immutable.Map[java.lang.String, scala.collection.Seq[scala.Tuple2[java.nio.file.Path, sbt.nio.FileStamp]]]]",{"2.11.6":{"hashes":[["/Users/skimport/Dropbox/*job_training/insight/trekWeather/src/main/scala/TrekWeather.scala","52248b411edd7c22a44230e7508eaf25554be760"]],"lastModifiedTimes":[]}}]
