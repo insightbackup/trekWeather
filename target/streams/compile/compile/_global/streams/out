@@ -1,7 +1,7 @@
-[0m[[0m[31merror[0m] [0m[0m/Users/skimport/Dropbox/*job_training/insight/trekWeather/src/main/scala/TrekWeather.scala:14:18: not found: type SparkConf[0m
-[0m[[0m[31merror[0m] [0m[0m		val conf = new SparkConf().setAppName("TrekWeather")[0m
-[0m[[0m[31merror[0m] [0m[0m		               ^[0m
-[0m[[0m[31merror[0m] [0m[0m/Users/skimport/Dropbox/*job_training/insight/trekWeather/src/main/scala/TrekWeather.scala:15:16: not found: type SparkContext[0m
-[0m[[0m[31merror[0m] [0m[0m		val sc = new SparkContext(conf)[0m
-[0m[[0m[31merror[0m] [0m[0m		             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/skimport/Dropbox/*job_training/insight/trekWeather/src/main/scala/TrekWeather.scala:20:32: stable identifier required, but org.apache.spark.sql.SparkSession.builder() found.[0m
+[0m[[0m[31merror[0m] [0m[0m		val spark = new SparkSession.builder.appName("TrekWeather").[0m
+[0m[[0m[31merror[0m] [0m[0m		                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/skimport/Dropbox/*job_training/insight/trekWeather/src/main/scala/TrekWeather.scala:34:31: value toDF is not a member of org.apache.spark.rdd.RDD[(String, String, String, String)][0m
+[0m[[0m[31merror[0m] [0m[0m		val stationsDF = usStations.toDF("ID", "Lat", "Lon", "State")[0m
+[0m[[0m[31merror[0m] [0m[0m		                            ^[0m
 [0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
