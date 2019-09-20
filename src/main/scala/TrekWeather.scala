@@ -33,7 +33,10 @@ object TrekWeather {
 
 		val stationsDF = usStations.toDF("ID", "Lat", "Lon", "State")
 
-		stationsDF.show()
+		var years = spark.read.format("csv").option("header","false")
+				.load("s3a://kimport-de-data/noaa/by-year/*.csv")
+
+		years.show()
 
 	}
 }
