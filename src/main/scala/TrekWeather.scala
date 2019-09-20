@@ -36,7 +36,7 @@ object TrekWeather {
 		var years = spark.read.format("csv").option("header","false")
 				.load("s3a://kimport-de-data/noaa/by_year/*.csv")
 
-		years.show()
+		println(years.count())
 
 	}
 }
