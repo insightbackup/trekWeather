@@ -110,7 +110,7 @@ object TrekWeather {
 	 							.drop("Year")
 
 	 	// read in the data, year by year, storing certain information as needed
-	 	for (year <- 2018 to 2017 by -1) {
+	 	for (year <- 2018 to 1763 by -1) {
 	 		var current = Reader.getWeatherForYear(sc, spark, year)
 	 		if (year == 2018) {
 			 	weatherStats = weatherStats.join(current, Seq("ID", "Month", "Day", "Stat"),
