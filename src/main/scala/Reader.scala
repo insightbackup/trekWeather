@@ -33,6 +33,8 @@ object Reader {
 		val usStations = splitLines.filter(x => x._1.substring(0,2) == "US")
 
 		usStations.toDF("ID", "Lat", "Lon", "State")
+				.withColumn("Lat", $"Lat".cast("double"))
+				.withColumn("Lon", $"Lon".cast("double"))
 	}
 
 

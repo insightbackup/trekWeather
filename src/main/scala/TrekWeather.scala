@@ -13,6 +13,8 @@ import org.apache.spark.sql.SparkSession._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SQLContext._
 
 import Reader._
 import Constants._
@@ -27,7 +29,9 @@ object TrekWeather {
 		} else if (args(0).equals("local")) {
 			Constants.LOCAL
 		} else {
-			Constants.SMALL_DATA
+			println("Invalid argument in call")
+			System.exit(0)
+			Constants.RUN_ALL
 		}
 		Constants.setConstants(runMode)
 
@@ -43,7 +47,7 @@ object TrekWeather {
 		var noaaData = getWeatherStats(sc, spark)
 //		noaaData.printSchema
 		
-		noaaData.show()
+//		noaaData.show()
 
 
 		/* Psuedo code for next steps
@@ -76,6 +80,13 @@ object TrekWeather {
 
 		// stationsDF.select($"ID").show()
 		// noaaData.show()
+		
+		// try writing to database
+		noaaData.write.format("jdbc").option("url", Constants.WEATHER_URL)
+				.option("dbtable","noaa").option("user", Constants.DB_USER)
+				.option("password", Constants.DB_PASSWORD)
+				.option("driver", "org.postgresql.Driver").mode("overwrite").save()
+
 
 
 	} // end main
@@ -123,7 +134,7 @@ object TrekWeather {
 	 			weatherStats = getAverages("50", weatherStats, years)
 	 		}
 	 	}
-//	 	weatherStats = getAverages("all", weatherStats, years)
+	 	weatherStats = getAverages("all", weatherStats, years)
 
  	 	// finish by getting the station location data, and joining with weatherStats
  	 	var stationsDF = Reader.getStations(sc, spark)
