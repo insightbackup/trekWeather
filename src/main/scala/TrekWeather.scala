@@ -11,6 +11,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.SparkSession._
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions._
 
 import Reader._
 import Constants._
@@ -41,24 +43,10 @@ object TrekWeather {
 		var noaaData = getWeatherStats(sc, spark)
 //		noaaData.printSchema
 		
-//		noaaData.show()
+		noaaData.show()
 
-		// specifying the desired measurements
-		val desiredElements = Seq("PRCP","SNOW","SNWD","TAVG","TMAX","TMIN","TOBS",
-								  "WT01","WT02","WT03","WT04","WT05","WT06","WT07",
-								  "WT08","WT09","WT10","WT11","WT12","WT13","WT14",
-								  "WT15","WT16","WT17","WT18","WT19","WT20","WT21","WT22")
 
 		/* Psuedo code for next steps
-		 * 
-		 * for (station in stationsDF(0)) {
-		 *	var stationData = noaaData.filter($"ID" == station)
-		 *	for (date in year) {
-		 *		record most recent data (2019 or 2018)
-		 *		get 3-year, 5-year, 10-year, 20-year, all-year count and averages for each stat
-		 *		write into appropriate postGIS table
-		 *	}
-		 *}
 		 * for (hike in OSM) {
 		 *	find K closest stations
 		 *	for each station {
@@ -103,24 +91,18 @@ object TrekWeather {
 	 	// add ability to use dataframes
 	 	import spark.implicits._
 
-	 	// start with the station data, which contains location
-	 	var weatherStats = Reader.getStations(sc, spark)
-
-	 	// now get the 2019 data - most recent when created
+	 	// get the 2019 data - most recent when created
 	 	var years = Reader.getWeatherForYear(sc, spark, 2019)
 
-	 	// join the 2019 data to weatherStats and rename value column
-	 	weatherStats = weatherStats.join(years, "ID")
-	 							   .withColumnRenamed("Value", "2019_value")
-	 							   .drop("Year")
-
-	 	// attempt to get 2018 data, join and see what happens
+	 	// start weatherStats with renamed value column
+	 	var weatherStats = years.withColumnRenamed("Value", "2019_value")
+	 							.drop("Year")
 
 	 	// read in the data, year by year, storing certain information as needed
-	 	for (year <- 2018 to 1763 by -1) {
+	 	for (year <- 2018 to 2017 by -1) {
 	 		var current = Reader.getWeatherForYear(sc, spark, year)
 	 		if (year == 2018) {
-			 	weatherStats = weatherStats.join(current, Seq("ID", "Month", "Day", "STAT"),
+			 	weatherStats = weatherStats.join(current, Seq("ID", "Month", "Day", "Stat"),
 	 												joinType = "full")
 	 								.withColumnRenamed("Value", "2018_value")
 	 								.drop("Year")
@@ -128,15 +110,40 @@ object TrekWeather {
 	 		years = years.union(current)
 
 	 		if (year == 2017) {
-	 			weatherStats = getAverages(3, years)
+	 			weatherStats = getAverages("3", weatherStats, years)
 	 		} else if (year == 2015) {
-	 			weatherStats = getAverages(5, years)
+	 			weatherStats = getAverages("5", weatherStats, years)
 	 		} else if (year == 2010) {
-	 			weatherStats = getAverages(10, years)
+	 			weatherStats = getAverages("10", weatherStats, years)
 	 		} else if (year == 2000) {
-	 			weatherStats = getAverages(20, years)
+	 			weatherStats = getAverages("20", weatherStats, years)
+	 		} else if (year == 1990) {
+	 			weatherStats = getAverages("30", weatherStats, years)
+	 		} else if (year == 1970) {
+	 			weatherStats = getAverages("50", weatherStats, years)
 	 		}
 	 	}
+//	 	weatherStats = getAverages("all", weatherStats, years)
+
+ 	 	// finish by getting the station location data, and joining with weatherStats
+ 	 	var stationsDF = Reader.getStations(sc, spark)
+
+		weatherStats.join(stationsDF, "ID")
+
 	 } // end getWeatherStats
+
+
+	 /**
+	  * This function counts and averages the data stored in years by station, date,
+	  * and measurement statistic then joins it with the weatherStats dataframe. The
+	  * string is used to set the newly added column names.
+	  */
+	  def getAverages(name: String, weatherStats: DataFrame, years: DataFrame) = {
+	  	var stats = years.groupBy("ID","Month","Day","Stat")
+	  					 .agg(mean("Value"),count("Value"))
+	  					 .withColumnRenamed("avg(Value)", name + "_year_avg")
+	  					 .withColumnRenamed("count(Value)", name + "_year_count")
+	  	weatherStats.join(stats, Seq("ID", "Month", "Day", "Stat"), joinType = "full")
+	  }
 
 } // end TrekWeather

@@ -60,8 +60,16 @@ object Reader {
 						.schema(yearSchema)
 						.load(Constants.NOAA_DATA_DIR + yyyy.toString + ".csv")
 
+
+		// specifying the desired measurements
+		val desiredElements = Seq("PRCP","SNOW","SNWD","TAVG","TMAX","TMIN","TOBS",
+								  "WT01","WT02","WT03","WT04","WT05","WT06","WT07",
+								  "WT08","WT09","WT10","WT11","WT12","WT13","WT14",
+								  "WT15","WT16","WT17","WT18","WT19","WT20","WT21","WT22")
+
 		// convert date column into three columns: year, month, day
 		current.filter($"ID".startsWith("US"))
+			   .filter(!($"Value").isin(desiredElements: _*))
 			   .withColumn("Year", substring($"Date",0,4).cast("int"))
 			   .withColumn("Month", substring($"Date",5,2).cast("int"))
 			   .withColumn("Day", substring($"Date",7,2).cast("int"))
