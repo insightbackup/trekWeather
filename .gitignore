@@ -1,4 +1,4 @@
 *.class
 *.log
 target/
-/src/main/scala/Constants.scala
+Constants.scala

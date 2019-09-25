@@ -2,7 +2,7 @@
 
 ## Project description
 
-Planning a hike or bike ride can take some planning. Whether trip is a day, a week, or a month, picking the time of year and securing the proper supplies often needs to be done before weather forecasts would be helpful. Trek Weather allows the user to view weather statistics (average/high/low temp, preciptation, snowfall) by route.
+Planning a hike can take some planning. Whether trip is a day, a week, or a month, picking the time of year and securing the proper supplies often needs to be done before weather forecasts would be helpful. Trek Weather allows the user to view weather statistics (average/high/low temp, preciptation, snowfall) by route.
 
 ## The data
 
