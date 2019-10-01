@@ -2,7 +2,7 @@
 
 ## Project description
 
-Planning a hike can take some planning. Whether trip is a day, a week, or a month, picking the time of year and securing the proper supplies often needs to be done before weather forecasts would be helpful. Trek Weather allows the user to view weather statistics (average/high/low temp, preciptation, snowfall) by route.
+When it comes to planning a hike, weather conditions can influence the supplies and equipment you need. Trek Weather allows the user to view weather statistics (average/high/low temp, preciptation, snowfall) by route.
 
 ## The data
 
@@ -16,9 +16,7 @@ Data will be processed and merged via Spark and then stored in a database (tech 
 
 1. Interpolate and store weather data for locations "far" from a weather station.
 
-1. Merge weather data with hiking and biking routes.
-
-1. Determine an effective way to split longer biking and hiking routes to supply more accurate weather data.
+1. Merge weather data with hiking routes.
 
 1. Balance the storage requirement for pre-processing all statistics with desire for low latency when displaying information.
 

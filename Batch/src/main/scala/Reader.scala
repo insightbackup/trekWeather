@@ -71,7 +71,7 @@ object Reader {
 
 		// convert date column into three columns: year, month, day
 		current.filter($"ID".startsWith("US"))
-			   .filter(!($"Value").isin(desiredElements: _*))
+			   .filter(($"Stat").isin(desiredElements: _*))
 			   .withColumn("Year", substring($"Date",0,4).cast("int"))
 			   .withColumn("Month", substring($"Date",5,2).cast("int"))
 			   .withColumn("Day", substring($"Date",7,2).cast("int"))

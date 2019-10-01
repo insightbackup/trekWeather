@@ -1,4 +1,4 @@
-name := "TrekWeather"
+name := "Batch"
 
 version := "1.0"
 

@@ -2,3 +2,5 @@
 *.log
 target/
 Constants.scala
+config.py
+.DS_Store
