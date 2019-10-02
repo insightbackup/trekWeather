@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+	<meta charset="utf-8">
+	<title> TrekWeather</title>
+</head>
+<body>
+	{% extends "template.html" %}
+	{% block content %}
+	<div class="container">
+		<div id='map' style='width: 400px; height: 300px;'></div>
+		<script>
+			mapboxgl.accessToken = 'pk.eyJ1IjoianNvbWEiLCJhIjoibFJmYl9JWSJ9.AUm8d76cbOvVEn2mMeG_ZA';
+			var map = new mapboxgl.Map({
+				container: 'map',
+				style: 'mapbox://styles/mapbox/streets-v9'
+			});
+			map.on('load', function() {
+				var geojsonData = {
+					"type": "FeatureCollection",
+					"features": [{
+						"type": "Feature",
+						"geometry": {
+							"type": "Point",
+							"coordinates": [0, 0]
+						}
+					}]
+				};
+				map.addLayer({
+					"id": "points",
+					"type": "circle",
+					"source": {
+						"type": "geojson",
+						"data": geojsonData
+					}
+				})
+			})
+		</script>
+		<p></p>
+		<p></p>
+	</div>
+	{% endblock %}
+</body>
+</html>

@@ -21,7 +21,6 @@ import org.apache.spark.sql.Column
 import java.sql.DriverManager
 import java.sql.Connection
 
-import Reader._
 import Constants._
 
 object Batch {
@@ -49,19 +48,19 @@ object Batch {
 
 		println("\n\n\n\n After explosions \n\n\n\n")
 		hikesDF.show()
-
 		hikesDF.printSchema
 
 		// join the weather stats to the hikes
 		val hikesWithWeather = hikesDF.join(noaaData, "Station_ID")
-									  .drop("")
 
 		println("\n\n\n\n And now we join \n\n\n\n")
 		hikesWithWeather.show()
 		hikesWithWeather.printSchema
 
-		// compute the weather averages for each hike and write to database
-		storeWeatherAverages(hikesWithWeather)
+		// repartition the dataframe to rebalance the size after the column 
+		// explosion and join. Then compute the weather averages for each hike
+		// and write result to database
+		storeWeatherAverages(hikesWithWeather.repartition($"Hike_ID"))
 
 	} // end main
 
@@ -113,7 +112,7 @@ object Batch {
 	 	)
 		val osmData = spark.read.format("csv").option("header", "true")
 							.schema(hikeSchema)
-							.load(Constants.OSM_DATA_DIR + "pacific_hike.csv")
+							.load(Constants.OSM_DATA_DIR + "*_hike.csv")
 
 		// filter for the named hikes themselves, instead of the nodes that make up the hike
 		val hikes = osmData.filter(col("Hike_ID") > scala.math.pow(10, 15))
@@ -167,17 +166,15 @@ object Batch {
 	 	var years = getWeatherForYear(spark, 2019)
 
 	 	// start weatherStats with renamed value column
-	 	var weatherStats = years.withColumnRenamed("Value", "2019_value")
-	 							.drop("Year")
+	 	var weatherStats = years.withColumnRenamed("Value", "2019_value").drop("Year")
 
 	 	// read in the data, year by year, storing certain information as needed
-	 	for (year <- 2018 to 2017 by -1) {
+	 	for (year <- 2018 to 1990 by -1) {
 	 		var current = getWeatherForYear(spark, year)
 	 		if (year == 2018) {
 			 	weatherStats = weatherStats
 			 			.join(current, Seq("Station_ID", "Month", "Day", "Stat"), joinType = "full")
-	 					.withColumnRenamed("Value", "2018_value")
-	 					.drop("Year")
+	 					.withColumnRenamed("Value", "2018_value").drop("Year")
 	 		}
 	 		years = years.union(current)
 
