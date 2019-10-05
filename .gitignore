@@ -5,3 +5,4 @@ Constants.scala
 config.py
 .DS_Store
 .project
+.geojson

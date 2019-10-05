@@ -8,37 +8,144 @@
 	{% extends "template.html" %}
 	{% block content %}
 	<div class="container">
-		<div id='map' style='width: 400px; height: 300px;'></div>
-		<script>
-			mapboxgl.accessToken = 'pk.eyJ1IjoianNvbWEiLCJhIjoibFJmYl9JWSJ9.AUm8d76cbOvVEn2mMeG_ZA';
-			var map = new mapboxgl.Map({
-				container: 'map',
-				style: 'mapbox://styles/mapbox/streets-v9'
-			});
-			map.on('load', function() {
-				var geojsonData = {
-					"type": "FeatureCollection",
-					"features": [{
-						"type": "Feature",
-						"geometry": {
-							"type": "Point",
-							"coordinates": [0, 0]
-						}
-					}]
-				};
-				map.addLayer({
-					"id": "points",
-					"type": "circle",
-					"source": {
-						"type": "geojson",
-						"data": geojsonData
-					}
-				})
-			})
-		</script>
-		<p></p>
-		<p></p>
+		<div class="row" style='margin: 0 auto'>
+			<h3> Where would you like to go hiking?</h3>
+			<div id='map' style='width: 85%; height: 500px; margin: 0 auto;'></div>
+		</div>
 	</div>
+	<script>
+		mapboxgl.accessToken = 'pk.eyJ1IjoianNvbWEiLCJhIjoibFJmYl9JWSJ9.AUm8d76cbOvVEn2mMeG_ZA';
+		var map = new mapboxgl.Map({
+			container: 'map',
+			style: 'mapbox://styles/mapbox/streets-v11',
+			center: [-98.6, 39.8],
+			zoom: 5,
+			minZoom: 0,
+			maxZoom: 14
+		});
+		// code for clustering functionality taken from https://docs.mapbox.com/mapbox-gl-js/example/cluster/
+		map.on('load', function() {
+			var canvas = map.getCanvasContainer();
+
+			map.addSource("hikes", {
+				type: "geojson",
+				data: "/getHikes/hikes.geojson",
+				cluster: true,
+				clusterMaxZoom: 14,
+				clusterRadius: 50
+			});
+
+
+			map.addLayer({
+				id: "clusters",
+				type: "circle",
+				source: "hikes",
+				filter: ["has", "point_count"],
+				paint: {
+					"circle-color" : [
+						"step", ["get", "point_count"],
+						"#51bbd6",
+						100,
+						"#f1f075",
+						750,
+						"#f28cb1"
+					],
+					"circle-radius" : [
+						"step", ["get", "point_count"],
+						20,
+						100,
+						30,
+						750,
+						40
+					]
+				}
+			});
+
+			map.addLayer({
+				id: "cluster-count",
+				type: "symbol",
+				source: "hikes",
+				filter: ["has", "point_count"],
+				layout: {
+					"text-field": "{point_count_abbreviated}",
+					"text-size": 12
+				}
+			});
+
+			map.addLayer({
+				id: "unclustered-point",
+				type: "circle",
+				source: "hikes",
+				filter: ["!",["has", "point_count"]],
+				paint: {
+					"circle-color": "#11b4da",
+					"circle-radius": 4,
+					"circle-stroke-width": 1,
+					"circle-stroke-color": "#fff"
+				}
+			});
+
+			// change the cursor to a pointer when mouse enters a cluster or hike
+			map.on('mouseenter', 'clusters', function() {
+				map.getCanvas().style.cursor = 'pointer';
+			});
+			map.on('mouseleave', 'clusters', function() {
+				map.getCanvas().style.cursor = '';
+			});
+			map.on('mouseenter', 'unclustered-point', function() {
+				map.getCanvas().style.cursor = 'pointer';
+			});
+			map.on('mouseleave', 'unclustered-point', function() {
+				map.getCanvas().style.cursor = '';
+			});
+
+			map.on('zoomend', function() {
+				console.log(map.getZoom());
+			});
+
+			map.on('click', 'clusters', function(e) {
+				console.log("Cluster clicked!");
+			});
+
+			map.on('click', 'unclustered-point', function(e) {
+				var features = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] });
+				var hike = features[0];
+				var popup = new mapboxgl.Popup({ offset: [0, -15] })
+										.setLngLat(hike.geometry.coordinates)
+										.setHTML('<h3>' + hike.properties.Name + 
+											'</h3> <br> <a href="/pickHikeDate/' + hike.properties.Hike_ID +
+											'"> Get Weather </a>').addTo(map);
+			});
+
+			map.on('click', 'clusters', function(e) {
+				if (map.getZoom() < map.getMaxZoom()) {
+					return;
+				}
+				var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+				var cluster = features[0];
+				var clusterId = cluster.properties.cluster_id;
+				var numLeaves = cluster.properties.point_count;
+				map.getSource('hikes').getClusterLeaves(clusterId, numLeaves, 0, function (err, features) {
+					if (err) {
+						return;
+					}
+					console.log(features);
+					var htmlString = '<h3>Hikes in this cluster</h3><ul>';
+					for (i = 0; i < features.length; i++) {
+						console.log(features[i]);
+						htmlString = htmlString + '<li>' + features[i].properties.Name + '</li>';
+					}
+					htmlString = htmlString + '</ul><a href="/getClusterWeather/' + 
+									features[0].properties.Hike_ID + '"> Get Weather </a>';
+					var popup = new mapboxgl.Popup({ offset: [0, -15] })
+										.setLngLat(cluster.geometry.coordinates)
+										.setHTML(htmlString).addTo(map)
+				});
+			});
+
+
+		});
+	</script>
 	{% endblock %}
 </body>
 </html>

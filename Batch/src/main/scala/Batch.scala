@@ -43,19 +43,15 @@ object Batch {
 		// load averaged US weather data into dataframe
 		val noaaData = getWeatherStats(spark)
 
+		val startTime = System.currentTimeMillis()
+
 		// associate each hike to the stations close to it
 		val hikesDF = mapHikesToStations(hikes)
 
-		println("\n\n\n\n After explosions \n\n\n\n")
-		hikesDF.show()
-		hikesDF.printSchema
+		println("\n\n\n\n Time taken = " + (System.currentTimeMillis() - startTime) + "\n\n\n\n")
 
 		// join the weather stats to the hikes
 		val hikesWithWeather = hikesDF.join(noaaData, "Station_ID")
-
-		println("\n\n\n\n And now we join \n\n\n\n")
-		hikesWithWeather.show()
-		hikesWithWeather.printSchema
 
 		// repartition the dataframe to rebalance the size after the column 
 		// explosion and join. Then compute the weather averages for each hike
@@ -114,10 +110,15 @@ object Batch {
 							.schema(hikeSchema)
 							.load(Constants.OSM_DATA_DIR + "*_hike.csv")
 
-		// filter for the named hikes themselves, instead of the nodes that make up the hike
+		// filter for hikes that have names and then remove ' and " from hike names
+		// for use in JSON with Flask
 		val hikes = osmData.filter(col("Hike_ID") > scala.math.pow(10, 15))
-			  			   .filter(col("Name").isNotNull)
-			  			   .drop("Highway","Route","Sac_Scale")
+						   .withColumn("Hike_ID", hex(floor(col("Hike_ID"))))
+						   .filter(col("Name").isNotNull)
+						   .withColumn("Name", regexp_replace(col("Name"), "\'", "\\$"))
+						   .withColumn("Name", regexp_replace(col("Name"), "\"", "\\$"))
+						   .dropDuplicates("Lat", "Lon")
+						   .drop("Highway","Route","Sac_Scale")
 
 		// write hikes to database for querying from UI
 		hikes.write.format("jdbc").option("url", Constants.DB_URL)
@@ -126,6 +127,8 @@ object Batch {
 				.option("driver", "org.postgresql.Driver").mode("overwrite").save()
 
 		addGeometryCol("hikes")
+
+		//
 
 		// return hike
 		hikes
@@ -148,6 +151,16 @@ object Batch {
 										" set geom = ST_SetSRID(ST_point(\"Lon\",\"Lat\"), 4326)")
 		computeGeometry.executeUpdate()
 		computeGeometry.close()
+
+		// finally, drop the index if it already exists and recreate
+		val dropIndex = sqlConnect.prepareStatement("drop index if exists " + tableName + "_index")
+		dropIndex.executeUpdate()
+		dropIndex.close()
+
+		val addIndex = sqlConnect.prepareStatement("create index " + tableName + "_index on " +
+													tableName + "(geom)")
+		addIndex.executeUpdate()
+		addIndex.close()
 
 		sqlConnect.close()
 	} // end addGeometryCol
@@ -264,7 +277,7 @@ object Batch {
 
 		// add a column that contains a list of the stations close to the hike
 		val hikesWithStations = hikesOnMaster.map {
-			case Row(id: Double, lat: Double, lon: Double, name: String) => {
+			case Row(id: String, lat: Double, lon: Double, name: String) => {
 				(id, lat, lon, name, getCloseStations(lat, lon, spark))
 			}
 		}
@@ -313,7 +326,8 @@ object Batch {
 
 		// now to sum the totals and counts, grouped by hike, date, and weather statistic
 		val sumColumns = expandAverages.groupBy("Hike_ID","Month", "Day", "Stat")
-						.agg(sum("3_year_tot").alias("3_year_num"), sum("3_year_count").alias("3_year_denom"),
+						.agg(mean("2019_value").alias("2019_value"), mean("2018_value").alias("2018_value"),
+							sum("3_year_tot").alias("3_year_num"), sum("3_year_count").alias("3_year_denom"),
 							sum("5_year_tot").alias("5_year_num"), sum("5_year_count").alias("5_year_denom"),
 							sum("10_year_tot").alias("10_year_num"), sum("10_year_count").alias("10_year_denom"),
 							sum("20_year_tot").alias("20_year_num"), sum("20_year_count").alias("20_year_denom"),
