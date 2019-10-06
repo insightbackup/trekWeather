@@ -14,11 +14,11 @@
 		</div>
 	</div>
 	<script>
-		mapboxgl.accessToken = 'pk.eyJ1IjoianNvbWEiLCJhIjoibFJmYl9JWSJ9.AUm8d76cbOvVEn2mMeG_ZA';
+		mapboxgl.accessToken = "{{ mapToken }}";
 		var map = new mapboxgl.Map({
 			container: 'map',
 			style: 'mapbox://styles/mapbox/streets-v11',
-			center: [-98.6, 39.8],
+			center: [-119.5, 37.9],
 			zoom: 5,
 			minZoom: 0,
 			maxZoom: 14
@@ -113,29 +113,43 @@
 				var popup = new mapboxgl.Popup({ offset: [0, -15] })
 										.setLngLat(hike.geometry.coordinates)
 										.setHTML('<h3>' + hike.properties.Name + 
-											'</h3> <br> <a href="/pickHikeDate/' + hike.properties.Hike_ID +
+											'</h3> <br> <a href="/pickDate/0/' + hike.properties.Hike_ID +
 											'"> Get Weather </a>').addTo(map);
 			});
 
 			map.on('click', 'clusters', function(e) {
-				if (map.getZoom() < map.getMaxZoom()) {
-					return;
-				}
+
 				var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
 				var cluster = features[0];
 				var clusterId = cluster.properties.cluster_id;
+
+				// if not yet at maxZoom, zoom in on cluster
+				if (map.getZoom() < map.getMaxZoom()) {
+					map.getSource('hikes').getClusterExpansionZoom(clusterId, function (err, zoom) {
+						if (err) {
+							return;
+						}
+						map.easeTo({
+							center: cluster.geometry.coordinates,
+							zoom: zoom
+						});
+					});
+					return;
+				}
+
+				// if at maxZoom, display a popup with the hike names and a link to get weather
 				var numLeaves = cluster.properties.point_count;
 				map.getSource('hikes').getClusterLeaves(clusterId, numLeaves, 0, function (err, features) {
 					if (err) {
 						return;
 					}
 					console.log(features);
-					var htmlString = '<h3>Hikes in this cluster</h3><ul>';
+					var htmlString = '<h3>Hikes in this area</h3><ul>';
 					for (i = 0; i < features.length; i++) {
 						console.log(features[i]);
 						htmlString = htmlString + '<li>' + features[i].properties.Name + '</li>';
 					}
-					htmlString = htmlString + '</ul><a href="/getClusterWeather/' + 
+					htmlString = htmlString + '</ul><a href="/pickDate/1/' + 
 									features[0].properties.Hike_ID + '"> Get Weather </a>';
 					var popup = new mapboxgl.Popup({ offset: [0, -15] })
 										.setLngLat(cluster.geometry.coordinates)

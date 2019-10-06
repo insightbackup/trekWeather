@@ -9,11 +9,16 @@
 	{% block content %}
 	<div class="container-fluid" style="width: 95%">
 		<div class="row" style="width: 95%">
-			For {{ hikeName }}, pick a day.
+			{% if cluster == "0" %}
+				For {{ hikeName }}, pick a day.
+			{% else %}
+				For hikes near {{ hikeName}}, pick a day.
+			{% endif %}
+
 		</div>
 		<div class="row">
 			<div class="col-md-6 col-sm-6 col-xs-12">
-				<form action="{{ url_for('pickHikeDate', hikeId = hikeId) }}" method='post' rol="form">
+				<form action="{{ url_for('pickDate', cluster = cluster, hikeId = hikeId) }}" method='post' rol="form">
 					<div class="form-group">
 						<label class="control-label" for="date">Date</label>
 						<input class="form-control" id="date" name="date" type="text"/>

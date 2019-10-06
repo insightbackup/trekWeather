@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+	<meta charset="utf-8">
+	<title> Hike Weather</title>
+</head>
+<body>
+	{% extends "template.html" %}
+	{% block content %}
+	<script>
+		// load data for the table
+		$(document).ready(function() {
+			var data = {{ hike|tojson|safe }};
+
+			$(function() {
+				$('#hikeweather').bootstrapTable({
+					data: data.properties
+				});
+			});
+		});
+	</script>
+	<div class="container-fluid" style="width: 95%">
+		<div class="row" style="width: 95%">
+			{% if cluster == "0" %}
+				For {{ hike.Name }} on {{ hike.Month }}/{{ hike.Day }}, we observed the following.
+			{% else %}
+				For hikes near {{ hike.Name }} on {{ hike.Month }}/{{ hike.Day }}, we observed the following.
+			{% endif %}
+		</div>
+		<div class="container">
+			<table id="hikeweather">
+				<thead>
+					<tr>
+						<th rowspan="2" data-field="Stat" class="align-middle text-center">Measurement</th>
+						<th colspan="2" class="text-center">Values</th>
+						<th colspan="5" class="text-center">Averages</th>
+					</tr>
+					<tr>
+						<th data-field="2019_value" class="text-center">2019</th>
+						<th data-field="2018_value" class="text-center">2018</th>
+						<th data-field="3_year_avg" class="text-center">3 year</th>
+						<th data-field="5_year_avg" class="text-center">5 year</th>
+						<th data-field="10_year_avg" class="text-center">10 year</th>
+						<th data-field="20_year_avg" class="text-center">20 year</th>
+						<th data-field="30_year_avg" class="text-center">30 year</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+		<div class="container">
+			<div class="row" style="width: 95%">
+			</div>
+			<div class="row" style="width: 95%">
+				<p><strong><a href=" {{ url_for('pickDate', cluster=cluster, hikeId=hike.Hike_ID) }}">Pick another day.</a></strong></p>
+			</div>
+			<div class="row" style="width: 95%">
+				<p><strong><a href="{{ url_for('home') }}">Pick another hike.</a></strong></p>
+			</div>
+		</div>
+	</div>
+
+
+	{% endblock %}
+</body>
+</html>

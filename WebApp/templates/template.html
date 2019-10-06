@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 	<meta charset="utf-8">
-	<title>Flask Parent Template</title>
+	<title>Trek Weather</title>
 
 	<link rel="shortcut icon" href="">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
@@ -22,21 +22,16 @@
 	<script type = "text/javascript" src="{{ url_for('static', filename = 'js/windowActions.js') }}"></script>
 
 	<script>
+		// date picker object
 		$(document).ready(function() {
 			var date_input=$('input[name="date"]');
 			var options = {
 				autoclose: true,
-				startDate: '01/01/2019',
-				endDate: '12/31/2019',
+				startDate: '01/01/2020',
+				endDate: '12/31/2020',
 				orientation: "top"
 			};
 			date_input.datepicker(options);
-		});
-		var $table = $('#table');
-		$(function (hikes) {
-			$('#table').bootstrapTable({
-				data: hikes
-			});
 		});
 	</script>
 
@@ -44,7 +39,7 @@
 <body>
 	<header>
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-			<a class="navbar-brand" href="#">TrekWeather</a>
+			<a class="navbar-brand" href="{{ url_for('home') }}">TrekWeather</a>
 		</nav>
 	</header>
 	{% block content %}
