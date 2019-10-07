@@ -19,6 +19,6 @@ For information about the processing in Spark and the database, see the [batch R
 
 ## Links
 
-* [Project demo](bit.ly/trekWeather)
+* [Project demo](http://bit.ly/trekWeather)
 
-* [Presentation Slides](bit.ly/trekWeather_slides)
+* [Presentation Slides](http://bit.ly/trekWeather_slides)
