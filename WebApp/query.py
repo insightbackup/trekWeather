@@ -2,6 +2,8 @@
 
 from flask import jsonify
 import psycopg2
+import os.path
+from os import path
 
 import config
 
@@ -15,15 +17,17 @@ as geometry, row_to_json(hp) as properties from hikes as hg inner join (select "
 
 # Queries database and writes result to a geojson file
 def createGeoJSON():
-	with psycopg2.connect(dbname=config.DB_NAME, user=config.USER, password=config.PASSWORD,
-		host=config.HOST, port=config.PORT) as connection:
-		with connection.cursor() as cur:
-			cur.execute(buildGeoJSONquery)
-			hikeGeoJSON = cur.fetchall()
-			with open('static/hikes.geojson', 'w') as f:
-				# need to replace characters that were put in database in place of ' to avoid
-				# GeoJSON parsing errors
-				f.write(str(hikeGeoJSON[0][0]).replace("'",'"').replace('$',"'"))
+	if (not(path.exists('static/hikes.geojson'))):
+		print("File not found so creating")
+		with psycopg2.connect(dbname=config.DB_NAME, user=config.USER, password=config.PASSWORD,
+			host=config.HOST, port=config.PORT) as connection:
+			with connection.cursor() as cur:
+				cur.execute(buildGeoJSONquery)
+				hikeGeoJSON = cur.fetchall()
+				with open('static/hikes.geojson', 'w') as f:
+					# need to replace characters that were put in database in place of ' to avoid
+					# GeoJSON parsing errors
+					f.write(str(hikeGeoJSON[0][0]).replace("'",'"').replace('$',"'"))
 
 
 # Query to get name of hike from database
