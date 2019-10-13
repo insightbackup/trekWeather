@@ -118,7 +118,7 @@ object Reader {
 		dropIndex.close()
 
 		val addIndex = sqlConnect.prepareStatement("create index " + tableName + "_index on " +
-													tableName + "(geom)")
+													tableName + " using gist(geom)")
 		addIndex.executeUpdate()
 		addIndex.close()
 
@@ -161,9 +161,12 @@ object Reader {
 								  "WT08","WT09","WT10","WT11","WT12","WT13","WT14",
 								  "WT15","WT16","WT17","WT18","WT19","WT20","WT21","WT22")
 
+		// Remove undesired stats and any measurement that has a quality flag (<.1% of 
+		// total measurements of desired stats per year)
 		// convert date column into three columns: year, month, day
 		current.filter($"Station_ID".startsWith("US"))
 			   .filter(($"Stat").isin(desiredElements: _*))
+			   .filter($"Q".isNull)
 			   .withColumn("Year", substring($"Date",0,4).cast("int"))
 			   .withColumn("Month", substring($"Date",5,2).cast("int"))
 			   .withColumn("Day", substring($"Date",7,2).cast("int"))

@@ -1,10 +1,14 @@
 from flask import Flask, escape, render_template, send_from_directory, jsonify, request
+import calendar
 
 import query
 import config
 
 app = Flask(__name__)
 
+@app.template_filter('month_name')
+def month_name(month_number):
+	return calendar.month_name[month_number]
 
 # home page
 @app.route("/")

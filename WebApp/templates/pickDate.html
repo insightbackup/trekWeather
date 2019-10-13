@@ -2,13 +2,13 @@
 <html lang="en" dir="ltr">
 <head>
 	<meta charset="utf-8">
-	<title> Hike Weather</title>
+	<title> Trek Weather </title>
 </head>
 <body>
 	{% extends "template.html" %}
 	{% block content %}
 	<div class="container-fluid" style="width: 95%">
-		<div class="row" style="width: 95%">
+		<div class="row mt-3 mb-3" style="width: 95%">
 			{% if cluster == "0" %}
 				For {{ hikeName }}, pick a day.
 			{% else %}

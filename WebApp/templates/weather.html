@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 	<meta charset="utf-8">
-	<title> Hike Weather</title>
+	<title> Trek Weather</title>
 </head>
 <body>
 	{% extends "template.html" %}
@@ -20,15 +20,17 @@
 		});
 	</script>
 	<div class="container-fluid" style="width: 95%">
-		<div class="row" style="width: 95%">
+		<div class="row mt-3 mb-3 justify-content-center" style="width: 95%">
+			<p></p>
 			{% if cluster == "0" %}
-				For {{ hike.Name }} on {{ hike.Month }}/{{ hike.Day }}, we observed the following.
+				<h3>{{ hike.Name }} on {{ hike.Month | month_name }} {{ hike.Day }}</h3>
 			{% else %}
-				For hikes near {{ hike.Name }} on {{ hike.Month }}/{{ hike.Day }}, we observed the following.
+				<h3> Hikes near {{ hike.Name }} on {{ hike.Month | month_name }} {{ hike.Day }}</h3>
 			{% endif %}
+			<p></p>
 		</div>
 		<div class="container">
-			<table id="hikeweather">
+			<table id="hikeweather" data-sort-name="Stat" data-sort-order="desc">
 				<thead>
 					<tr>
 						<th rowspan="2" data-field="Stat" class="align-middle text-center">Measurement</th>
@@ -48,13 +50,9 @@
 			</table>
 		</div>
 		<div class="container">
-			<div class="row" style="width: 95%">
-			</div>
-			<div class="row" style="width: 95%">
-				<p><strong><a href=" {{ url_for('pickDate', cluster=cluster, hikeId=hike.Hike_ID) }}">Pick another day.</a></strong></p>
-			</div>
-			<div class="row" style="width: 95%">
-				<p><strong><a href="{{ url_for('home') }}">Pick another hike.</a></strong></p>
+			<div class="row justify-content-center mt-3" style="width: 95%">
+				<div class="col text-center"><strong><a href=" {{ url_for('pickDate', cluster=cluster, hikeId=hike.Hike_ID) }}">Pick another day</a></strong></div>
+				<div class="col text-center"><strong><a href="{{ url_for('home') }}">Pick another hike</a></strong></div>
 			</div>
 		</div>
 	</div>

@@ -60,6 +60,13 @@ def roundIfNotNull(x, divideBy=1):
 		return None
 	return round(x/divideBy, 2)
 
+# given degrees Celsius, converts to Fahrenheit - add 320 because we are still dealing
+# with tenths of degrees
+def cToF(x):
+	if x is None:
+		return None
+	return (x * 9.0 / 5.0) + 320
+
 # Snowfall is given in mm
 def snowfall(x):
 	return {'Stat': "Snowfall (mm)", '2019_value': roundIfNotNull(x[4]), '2018_value': roundIfNotNull(x[5]),
@@ -67,28 +74,35 @@ def snowfall(x):
 			'10_year_avg': roundIfNotNull(x[8]), '20_year_avg': roundIfNotNull(x[9]),
 			'30_year_avg': roundIfNotNull(x[10])}
 
-# precipitation and temperature are given in tenths of units, so we divide by 10 before returning
-def precTemp(x):
-	statType = {
-		"PRCP": "Precipitation (mm)",
-		"TMIN": "Min temp (C)",
-		"TMAX": "Max temp (C)",
-		"TAVG": "Avg temp (C)"		
-	}
-	return {'Stat': statType.get(x[3]), '2019_value': roundIfNotNull(x[4], 10),
+# precipitation is given in tenths of mm, so we divide by 10 before returning
+def prec(x):
+	return {'Stat': "Precipitation (mm)", '2019_value': roundIfNotNull(x[4], 10),
 			'2018_value': roundIfNotNull(x[5], 10), '3_year_avg': roundIfNotNull(x[6], 10),
 			'5_year_avg': roundIfNotNull(x[7], 10),'10_year_avg': roundIfNotNull(x[8], 10),
 			'20_year_avg': roundIfNotNull(x[9], 10), '30_year_avg': roundIfNotNull(x[10], 10)}
+
+# temperature is given in tenths of degrees Celsius; for ease of reading by an American audience,
+# we divide by 10 and convert to Fahrenheit before returning
+def temp(x):
+	tempType = {
+		"TMIN": "Min temp (F)",
+		"TMAX": "Max temp (F)",
+		"TAVG": "Avg temp (F)"		
+	}
+	return {'Stat': tempType.get(x[3]), '2019_value': roundIfNotNull(cToF(x[4]), 10),
+			'2018_value': roundIfNotNull(cToF(x[5]), 10), '3_year_avg': roundIfNotNull(cToF(x[6]), 10),
+			'5_year_avg': roundIfNotNull(cToF(x[7]), 10),'10_year_avg': roundIfNotNull(cToF(x[8]), 10),
+			'20_year_avg': roundIfNotNull(cToF(x[9]), 10), '30_year_avg': roundIfNotNull(cToF(x[10]), 10)}
 
 
 # Given a row of the query output, returns a list that will create a JSON with proper format
 def weatherRow(x):
 	statType = {
 		"SNOW": snowfall,
-		"PRCP": precTemp,
-		"TMAX": precTemp,
-		"TMIN": precTemp,
-		"TAVG": precTemp
+		"PRCP": prec,
+		"TMAX": temp,
+		"TMIN": temp,
+		"TAVG": temp
 	}
 	stat = statType.get(x[3], "SKIP")
 	if (stat == "SKIP"):
