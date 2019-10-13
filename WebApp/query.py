@@ -29,6 +29,27 @@ def createGeoJSON():
 					# GeoJSON parsing errors
 					f.write(str(hikeGeoJSON[0][0]).replace("'",'"').replace('$',"'"))
 
+stationGeoJSONquery = """
+select row_to_json(fc) from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) 
+as features from (select 'Feature' as type, st_asgeojson(hg.geom, 6)::json 
+as geometry, row_to_json(hp) as properties from stations as hg inner join (select "Station_ID",
+"State" from stations) as hp on hg."Station_ID" = hp."Station_ID") as f) as fc;
+"""
+
+# Queries database and writes result to a geojson file
+def stationGeoJSON():
+	if (not(path.exists('static/stations.geojson'))):
+		print("File not found so creating")
+		with psycopg2.connect(dbname=config.DB_NAME, user=config.USER, password=config.PASSWORD,
+			host=config.HOST, port=config.PORT) as connection:
+			with connection.cursor() as cur:
+				cur.execute(stationGeoJSONquery)
+				stations = cur.fetchall()
+				with open('static/stations.geojson', 'w') as f:
+					# need to replace characters that were put in database in place of ' to avoid
+					# GeoJSON parsing errors
+					f.write(str(stations[0][0]).replace("'",'"'))
+
 
 # Query to get name of hike from database
 hikeNameQuery ="""select "Name" from hikes where "Hike_ID" = %s;"""

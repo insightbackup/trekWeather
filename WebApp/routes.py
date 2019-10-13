@@ -22,6 +22,17 @@ def home():
 def getHikes():
 	return send_from_directory("static/", "hikes.geojson")
 
+# return stations geojson for map
+@app.route("/getStations/stations.geojson")
+def getStations():
+	print("Returning stations")
+	return send_from_directory("static/", "stations.geojson")
+
+@app.route("/stations")
+def stations():
+	query.stationGeoJSON()
+	return render_template("stations.html", mapToken=config.MAP_TOKEN)
+
 # The main UI interface. If the request method is GET, displays the page to allow the user
 # to pick a date for their hike. If the request method is POST, this queries the database and
 # then displays the results to the user
